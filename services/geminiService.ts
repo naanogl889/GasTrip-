@@ -1,8 +1,8 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { TripData, HelperType } from "../types.ts";
+import { TripData, HelperType } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const getFuelInsights = async (data: TripData) => {
   try {
@@ -28,24 +28,23 @@ export const getFuelInsights = async (data: TripData) => {
     });
     return response.text ? JSON.parse(response.text) : [];
   } catch (error) {
-    console.error("Gemini Error:", error);
     return [];
   }
 };
 
 export const getSmartHelper = async (type: HelperType, params: any) => {
-  const model = 'gemini-3-flash-preview';
+  const model = type === 'distance' ? 'gemini-3-flash-preview' : 'gemini-3-flash-preview';
   const tools = type === 'distance' || type === 'price' ? [{ googleSearch: {} }] : [];
   
   let prompt = "";
   let systemInstruction = "Eres un asistente de datos de viaje. Responde exclusivamente con el número solicitado (puedes usar decimales con punto). No incluyas texto, unidades ni explicaciones.";
 
   if (type === 'distance') {
-    prompt = `¿Cuántos kilómetros hay por carretera entre ${params.origin} y ${params.destination}? Devuelve solo el número.`;
+    prompt = `¿Cuántos kilómetros hay por carretera entre ${params.origin} y ${params.destination}? Devuelve la distancia de SOLO UN TRAYECTO.`;
   } else if (type === 'consumption') {
-    prompt = `Estima el consumo medio real en L/100km para un coche modelo "${params.carModel}".`;
+    prompt = `Estima el consumo medio real en L/100km para un coche modelo "${params.carModel}" en ciclo "${params.routeType}".`;
   } else if (type === 'price') {
-    prompt = `¿Cuál es el precio medio actual por litro de gasolina en ${params.city}?`;
+    prompt = `¿Cuál es el precio medio actual por litro de ${params.fuelType} en la ciudad de ${params.city}? Busca datos reales de hoy.`;
   }
 
   try {

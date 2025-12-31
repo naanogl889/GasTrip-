@@ -1,6 +1,6 @@
 {
-  "name": "GasTrip - Calculadora Inteligente",
-  "description": "Calcula el coste de tus viajes con IA. Instalable en iPhone y Android.",
+  "name": "GasTrip - Calculadora Inteligente de Combustible",
+  "description": "Una aplicación moderna para calcular los costes de combustible de tus viajes, con sugerencias inteligentes de eficiencia impulsadas por IA.",
   "requestFramePermissions": [
     "geolocation"
   ]

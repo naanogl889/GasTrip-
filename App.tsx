@@ -1,9 +1,9 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { TripData, AiInsight, HelperType } from './types.ts';
-import { InputField } from './components/InputSection.tsx';
-import { ResultCard } from './components/ResultCard.tsx';
-import { getFuelInsights, getSmartHelper } from './services/geminiService.ts';
+import { TripData, CalculationResult, AiInsight, HelperType } from './types';
+import { InputField } from './components/InputSection';
+import { ResultCard } from './components/ResultCard';
+import { getFuelInsights, getSmartHelper } from './services/geminiService';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
 } from 'recharts';
@@ -25,9 +25,11 @@ const App: React.FC = () => {
   const [insights, setInsights] = useState<AiInsight[]>([]);
   const [insightsLoading, setInsightsLoading] = useState(false);
 
+  // Split Expense State
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [numPeople, setNumPeople] = useState(1);
 
+  // Helper form local states
   const [distanceForm, setDistanceForm] = useState({ origin: '', destination: '', type: 'one-way' });
   const [consumptionForm, setConsumptionForm] = useState({ carModel: '', routeType: 'mixto' });
   const [priceForm, setPriceForm] = useState({ city: '', fuelType: 'gasolina' });
@@ -102,6 +104,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300">
+      {/* HEADER */}
       <header className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -121,6 +124,8 @@ const App: React.FC = () => {
 
       <main className="max-w-5xl mx-auto px-6 pt-12 pb-24">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          
+          {/* COLUMN 1: INPUTS */}
           <section className="lg:col-span-5 space-y-8">
             <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] shadow-2xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800">
               <h2 className="text-[11px] font-black uppercase tracking-[0.25em] text-slate-400 dark:text-slate-600 mb-10">Detalles del Viaje</h2>
@@ -134,6 +139,7 @@ const App: React.FC = () => {
                   helpText="¿No sabes los km?" 
                   onHelp={() => setActiveHelper('distance')}
                 />
+
                 <InputField 
                   label="Consumo Medio" 
                   value={data.consumption} 
@@ -142,6 +148,7 @@ const App: React.FC = () => {
                   helpText="¿Cuánto consume?" 
                   onHelp={() => setActiveHelper('consumption')}
                 />
+
                 <InputField 
                   label="Precio del Litro" 
                   value={data.price} 
@@ -152,6 +159,7 @@ const App: React.FC = () => {
                 />
               </div>
             </div>
+
             <button 
               onClick={() => setIsShareModalOpen(true)} 
               disabled={results.totalCost === 0}
@@ -161,7 +169,9 @@ const App: React.FC = () => {
             </button>
           </section>
 
+          {/* COLUMN 2: RESULTS */}
           <section className="lg:col-span-7 space-y-10">
+            {/* HERO TOTAL COST */}
             <div className="bg-indigo-600 dark:bg-indigo-500 p-12 rounded-[3.5rem] text-white shadow-2xl shadow-indigo-500/30 group relative overflow-hidden">
               <div className="relative z-10">
                 <span className="text-[10px] font-black uppercase tracking-[0.5em] opacity-80 block mb-4">COSTE TOTAL DEL VIAJE</span>
@@ -170,6 +180,7 @@ const App: React.FC = () => {
                   <span className="text-3xl font-black opacity-60">€</span>
                 </div>
               </div>
+              <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all"></div>
             </div>
 
             <div className="grid grid-cols-2 gap-6">
@@ -177,6 +188,7 @@ const App: React.FC = () => {
               <ResultCard label="Coste por KM" value={results.costPerKm.toFixed(3)} unit="€" color="bg-white dark:bg-slate-900 border dark:border-slate-800" />
             </div>
 
+            {/* CHART BREAKDOWN */}
             <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border dark:border-slate-800">
               <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-8">Análisis Métrico</h3>
               <div className="h-56 w-full">
@@ -185,7 +197,7 @@ const App: React.FC = () => {
                     <CartesianGrid strokeDasharray="8 8" vertical={false} stroke={isDarkMode ? "#1e293b" : "#f1f5f9"} />
                     <XAxis dataKey="name" fontSize={10} fontWeight={900} axisLine={false} tickLine={false} tick={{fill: '#64748b'}} dy={10} />
                     <YAxis fontSize={10} fontWeight={900} axisLine={false} tickLine={false} tick={{fill: '#64748b'}} />
-                    <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '12px', border: 'none' }} />
+                    <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
                     <Bar dataKey="value" radius={[12, 12, 12, 12]} barSize={40}>
                       {chartData.map((e, i) => <Cell key={i} fill={i === 0 ? '#6366f1' : '#fbbf24'} />)}
                     </Bar>
@@ -194,6 +206,7 @@ const App: React.FC = () => {
               </div>
             </div>
 
+            {/* SECONDARY SECTIONS: Carbon and Insights */}
             <div className="pt-10 border-t dark:border-slate-800 space-y-10">
               <div className="bg-emerald-50 dark:bg-emerald-950/20 p-8 rounded-[2.5rem] border border-emerald-100 dark:border-emerald-900/40 flex items-center justify-between">
                 <div>
@@ -213,7 +226,7 @@ const App: React.FC = () => {
                 </button>
                 <div className="grid gap-4">
                   {insights.map((ins, i) => (
-                    <div key={i} className="bg-white dark:bg-slate-900 p-6 rounded-2xl border dark:border-slate-800 shadow-sm">
+                    <div key={i} className="bg-white dark:bg-slate-900 p-6 rounded-2xl border dark:border-slate-800 shadow-sm animate-in slide-in-from-bottom-2 duration-300">
                       <div className="flex justify-between items-center mb-2">
                         <h5 className="font-bold text-slate-800 dark:text-slate-200 text-sm">{ins.title}</h5>
                         <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${ins.impact === 'high' ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}`}>{ins.impact}</span>
@@ -228,54 +241,120 @@ const App: React.FC = () => {
         </div>
       </main>
 
+      {/* SHARE MODAL (SPLIT EXPENSE) */}
       {isShareModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xl">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-md p-8 rounded-[3rem] border dark:border-slate-800">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-md p-8 rounded-[3rem] shadow-2xl border dark:border-slate-800 animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center mb-8">
-              <h3 className="text-xl font-black tracking-tighter dark:text-white">Dividir Gastos</h3>
-              <button onClick={() => setIsShareModalOpen(false)} className="p-2 text-slate-400">✕</button>
+              <h3 className="text-xl font-black tracking-tighter dark:text-white">Compartir Gastos</h3>
+              <button onClick={() => setIsShareModalOpen(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-400 transition-colors">✕</button>
             </div>
+            
             <div className="space-y-8">
-              <div className="flex items-center gap-4">
-                <button onClick={() => setNumPeople(Math.max(1, numPeople - 1))} className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-xl font-bold">-</button>
-                <div className="flex-1 text-center">
-                  <span className="text-2xl font-black">{numPeople}</span>
-                  <span className="text-[10px] block font-black uppercase text-slate-400">Personas</span>
+              <div className="space-y-4">
+                <label className="text-[11px] font-black uppercase text-slate-400 tracking-widest block ml-1">Dividir entre cuantas personas:</label>
+                <div className="flex items-center gap-4">
+                  <button 
+                    onClick={() => setNumPeople(Math.max(1, numPeople - 1))}
+                    className="w-12 h-12 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-xl text-xl font-bold hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
+                  >
+                    -
+                  </button>
+                  <div className="flex-1 bg-slate-50 dark:bg-slate-800/50 rounded-2xl py-3 px-6 text-center border dark:border-slate-800">
+                    <span className="text-2xl font-black tabular-nums">{numPeople}</span>
+                    <span className="text-[10px] font-black uppercase text-slate-400 block tracking-tighter">Personas</span>
+                  </div>
+                  <button 
+                    onClick={() => setNumPeople(numPeople + 1)}
+                    className="w-12 h-12 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-xl text-xl font-bold hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
+                  >
+                    +
+                  </button>
                 </div>
-                <button onClick={() => setNumPeople(numPeople + 1)} className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-xl font-bold">+</button>
               </div>
-              <div className="bg-indigo-50 dark:bg-indigo-950/30 p-6 rounded-3xl text-center">
-                <span className="text-[10px] font-black uppercase text-indigo-400 mb-2 block">CADA UNO PAGA</span>
-                <span className="text-4xl font-black text-indigo-600 dark:text-indigo-400">{costPerPerson.toFixed(2)} €</span>
+
+              <div className="bg-indigo-50 dark:bg-indigo-950/30 p-6 rounded-3xl border border-indigo-100 dark:border-indigo-900/50 text-center">
+                <span className="text-[10px] font-black uppercase text-indigo-400 tracking-[0.2em] block mb-2">CADA UNO PAGA</span>
+                <div className="flex items-baseline justify-center gap-1 text-indigo-600 dark:text-indigo-400">
+                  <span className="text-4xl font-black tabular-nums">{costPerPerson.toFixed(2)}</span>
+                  <span className="text-lg font-black opacity-60">€</span>
+                </div>
               </div>
-              <button onClick={handleFinalShare} className="w-full py-4.5 bg-indigo-600 text-white rounded-2xl font-black">COMPARTIR ✨</button>
+
+              <button 
+                onClick={handleFinalShare}
+                className="w-full py-4.5 bg-indigo-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-500/20 hover:bg-indigo-500 transition-all flex items-center justify-center gap-3 active:scale-95"
+              >
+                CONFIRMAR Y COMPARTIR ✨
+              </button>
             </div>
           </div>
         </div>
       )}
 
+      {/* ASSISTANT MODALS */}
       {activeHelper && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xl">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-md p-8 rounded-[3rem] border dark:border-slate-800">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-md p-8 rounded-[3rem] shadow-2xl border dark:border-slate-800 animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center mb-8">
-              <h3 className="text-xl font-black tracking-tighter dark:text-white">Asistente IA</h3>
-              <button onClick={() => setActiveHelper(null)} className="p-2 text-slate-400">✕</button>
+              <h3 className="text-xl font-black tracking-tighter dark:text-white">
+                {activeHelper === 'distance' ? 'Calculador de Ruta' : activeHelper === 'consumption' ? 'Consumo Estimado' : 'Precio Actual'}
+              </h3>
+              <button onClick={() => setActiveHelper(null)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-400 transition-colors">✕</button>
             </div>
+            
             <div className="space-y-6">
               {activeHelper === 'distance' && (
                 <div className="space-y-4">
-                  <input placeholder="Origen" value={distanceForm.origin} onChange={e => setDistanceForm(f => ({...f, origin: e.target.value}))} className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 rounded-2xl outline-none font-bold" />
-                  <input placeholder="Destino" value={distanceForm.destination} onChange={e => setDistanceForm(f => ({...f, destination: e.target.value}))} className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 rounded-2xl outline-none font-bold" />
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Origen</label>
+                    <input autoFocus type="text" placeholder="Ciudad de salida" value={distanceForm.origin} onChange={e => setDistanceForm(f => ({...f, origin: e.target.value}))} className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 font-bold" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Destino</label>
+                    <input type="text" placeholder="Ciudad de llegada" value={distanceForm.destination} onChange={e => setDistanceForm(f => ({...f, destination: e.target.value}))} className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 font-bold" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl">
+                    <button onClick={() => setDistanceForm(f => ({...f, type: 'one-way'}))} className={`py-2.5 rounded-xl text-[10px] font-black uppercase transition-all ${distanceForm.type === 'one-way' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600' : 'text-slate-400'}`}>Solo Ida</button>
+                    <button onClick={() => setDistanceForm(f => ({...f, type: 'round-trip'}))} className={`py-2.5 rounded-xl text-[10px] font-black uppercase transition-all ${distanceForm.type === 'round-trip' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600' : 'text-slate-400'}`}>Ida y Vuelta</button>
+                  </div>
                 </div>
               )}
+
               {activeHelper === 'consumption' && (
-                <input placeholder="Modelo de coche" value={consumptionForm.carModel} onChange={e => setConsumptionForm(f => ({...f, carModel: e.target.value}))} className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 rounded-2xl outline-none font-bold" />
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Vehículo</label>
+                    <input autoFocus type="text" placeholder="Marca y modelo (ej: Seat Ibiza 2022)" value={consumptionForm.carModel} onChange={e => setConsumptionForm(f => ({...f, carModel: e.target.value}))} className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 font-bold" />
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl">
+                    {['urbano', 'mixto', 'carretera'].map(t => (
+                      <button key={t} onClick={() => setConsumptionForm(f => ({...f, routeType: t}))} className={`py-2.5 rounded-xl text-[9px] font-black uppercase transition-all ${consumptionForm.routeType === t ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600' : 'text-slate-400'}`}>{t}</button>
+                    ))}
+                  </div>
+                </div>
               )}
+
               {activeHelper === 'price' && (
-                <input placeholder="Tu ciudad" value={priceForm.city} onChange={e => setPriceForm(f => ({...f, city: e.target.value}))} className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 rounded-2xl outline-none font-bold" />
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Ubicación</label>
+                    <input autoFocus type="text" placeholder="Tu ciudad" value={priceForm.city} onChange={e => setPriceForm(f => ({...f, city: e.target.value}))} className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 font-bold" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl">
+                    {['gasolina', 'diésel'].map(t => (
+                      <button key={t} onClick={() => setPriceForm(f => ({...f, fuelType: t}))} className={`py-2.5 rounded-xl text-[10px] font-black uppercase transition-all ${priceForm.fuelType === t ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600' : 'text-slate-400'}`}>{t}</button>
+                    ))}
+                  </div>
+                </div>
               )}
-              <button onClick={handleExecuteHelper} disabled={helperLoading} className="w-full py-4.5 bg-indigo-600 text-white rounded-2xl font-black">
-                {helperLoading ? 'Calculando...' : 'Obtener Datos ✨'}
+
+              <button 
+                onClick={handleExecuteHelper} 
+                disabled={helperLoading}
+                className="w-full py-4.5 bg-indigo-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-500/20 hover:bg-indigo-500 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+              >
+                {helperLoading ? <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> : "OBTENER DATOS ✨"}
               </button>
             </div>
           </div>
