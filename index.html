@@ -35,40 +35,39 @@
             font-family: 'Inter', sans-serif;
             -webkit-tap-highlight-color: transparent;
             overscroll-behavior-y: contain;
+            margin: 0;
         }
-        /* Prevenir zoom en inputs en iOS */
-        input[type="text"], input[type="number"] {
+        input[type="number"] {
             font-size: 16px !important;
-        }
-        *, *::before, *::after {
-            transition-property: background-color, border-color, color, fill, stroke;
-            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-            transition-duration: 150ms;
         }
     </style>
     
-    <!-- Evitar errores de 'process is not defined' en el navegador -->
     <script>
-      window.process = window.process || { env: { API_KEY: "" } };
+      // Parche crucial para que las librerías que buscan 'process' no fallen
+      window.process = { 
+        env: { 
+          NODE_ENV: 'production',
+          API_KEY: "" // Vercel inyectará esto o se leerá de las variables de entorno
+        } 
+      };
     </script>
 
     <script type="importmap">
 {
   "imports": {
-    "recharts": "https://esm.sh/recharts@2.12.7",
-    "@google/genai": "https://esm.sh/@google/genai@0.2.1",
     "react": "https://esm.sh/react@18.2.0",
     "react-dom": "https://esm.sh/react-dom@18.2.0",
     "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+    "recharts": "https://esm.sh/recharts@2.12.7",
+    "@google/genai": "https://esm.sh/@google/genai@0.2.1",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "react/": "https://esm.sh/react@^19.2.3/"
   }
 }
 </script>
 </head>
-<body class="bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
+<body class="bg-slate-50 dark:bg-slate-950">
     <div id="root"></div>
-    <!-- Carga del punto de entrada de la aplicación -->
     <script type="module" src="./index.tsx"></script>
 </body>
 </html>
